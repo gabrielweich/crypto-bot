@@ -1,0 +1,15 @@
+{
+  "name": "crypto-bot",
+  "version": "1.0.0",
+  "description": "cryptocurrency trading bot",
+  "main": "index.js",
+  "repository": "https://github.com/gabrielweich/crypto-bot.git",
+  "author": "Gabriel Weich <gabrielweich@hotmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "crypto": "^1.0.1",
+    "dotenv": "^4.0.0",
+    "query-string": "^5.0.1"
+  }
+}
