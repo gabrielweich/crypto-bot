@@ -13,27 +13,70 @@ class CoinList {
     this.coins.push(coin);
   }
 
-  startCoins() {
-    this.updatePrices();
+  async startCoins() {
+    await Promise.all([this.updateQuantities(), this.firstPrices()])
+    console.log('All started');
+    this.monitors();
+    await delay(60000);
+    for(let coin of this.coins){
+      coin.updateAverage();
+    }
   }
 
-  _updatePrices() {
-    this.binance.prices()
-      .then(data => {
 
-        const timestamp = Date.now();
-        let prices = [];
+  async monitors() {
+    try {
+      let data = await this.binance.prices();
 
-        data.map(obj => {
-          let symbol = obj.symbol;
-          prices[obj.symbol] = parseFloat(obj.price);
-        });
+      let prices = [];
+      data.map(obj => {
+        let symbol = obj.symbol;
+        prices[obj.symbol] = parseFloat(obj.price);
+      });
 
-        this.coins.forEach(coin => {
-          coin.updatePrice(prices[coin.pair])
-        });
-      })
-      .catch(error => console.log(error));
+      for(let coin of this.coins){
+        coin.trade(prices[coin.pair])
+      }
+
+      await delay(5000);
+    }
+    catch (error) {
+      console.error("Error in _getPrices()", error);
+    }
+    finally{
+      await delay(5000)
+      this.monitors();
+    }
+  }
+
+  async updateQuantities(){
+    try{
+      const data = await this.binance.accountInfo();
+      const balances = data.balances;
+      const quantities = [];
+      balances.map(obj => {
+        quantities[obj.asset] = obj.free;
+      });
+
+      for(const coin of this.coins){
+        coin.updateQuantity(quantities[coin.name]);
+      }
+    }
+    catch (error) {
+      console.error("Error in updateQuantities()", error);
+      await delay(2000);
+      return this.updateQuantities();
+    }
+  }
+
+  async firstPrices() {
+    let promises = [];
+
+    this.coins.forEach(coin => {
+      promises.push(coin.sma('4h', 50));
+    });
+
+    return Promise.all(promises);
   }
 }
 
