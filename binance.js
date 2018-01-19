@@ -40,17 +40,9 @@ class Binance {
     return this._signed('api/v3/account', 'GET')
   }
 
-  buy(symbol, quantity, price, options ) {
-    return this._order('BUY', symbol, quantity, price, options);
-  }
-
-  sell(symbol, quantity, price, options){
-    return this._order('SELL', symbol, quantity, price, options);
-  }
-
-  _order(side, symbol, quantity, price, options = {}){
-    options.type = typeof options.type != 'undefined'? options.type : 'LIMIT';
-    options.timeInForce = typeof options.timeInForce != 'undefined'? options.timeInForce : 'GTC';
+  order(side, symbol, quantity, price, options = {}) {
+    options.type = typeof options.type != 'undefined' ? options.type : 'LIMIT';
+    options.timeInForce = typeof options.timeInForce != 'undefined' ? options.timeInForce : 'GTC';
 
     let params = {
       symbol,
@@ -59,8 +51,6 @@ class Binance {
       price,
       ...options
     }
-
-    console.log(params);
 
     return this._signed('api/v3/order', 'POST', params)
   }
@@ -78,7 +68,7 @@ class Binance {
   }
 
   _signed(command, method, params) {
-    let data = {...params};
+    let data = { ...params };
     data.timestamp = Date.now();
 
     const query = queryString.stringify(data);
@@ -93,7 +83,6 @@ class Binance {
           headers: {
             'X-MBX-APIKEY': this.key,
           }
-
         }
       )
         .then(data => resolve(data['data']))

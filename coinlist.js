@@ -1,6 +1,6 @@
 const Coin = require('./coin');
 const Binance = require('./binance');
-const { delay } = require('./utils');
+const { delay, errorMessage } = require('./utils');
 
 class CoinList {
   constructor() {
@@ -14,11 +14,12 @@ class CoinList {
   }
 
   async startCoins() {
+
     await Promise.all([this.updateQuantities(), this.firstPrices()])
     console.log('All started');
     this.monitors();
-    await delay(60000);
-    for(let coin of this.coins){
+    await delay(120000);
+    for (let coin of this.coins) {
       coin.updateAverage();
     }
   }
@@ -34,23 +35,23 @@ class CoinList {
         prices[obj.symbol] = parseFloat(obj.price);
       });
 
-      for(let coin of this.coins){
+      for (let coin of this.coins) {
         coin.trade(prices[coin.pair])
       }
 
       await delay(5000);
     }
     catch (error) {
-      console.error("Error in _getPrices()", error);
+      console.error("Error in _getPrices()", errorMessage(error));
     }
-    finally{
+    finally {
       await delay(5000)
       this.monitors();
     }
   }
 
-  async updateQuantities(){
-    try{
+  async updateQuantities() {
+    try {
       const data = await this.binance.accountInfo();
       const balances = data.balances;
       const quantities = [];
@@ -58,12 +59,12 @@ class CoinList {
         quantities[obj.asset] = obj.free;
       });
 
-      for(const coin of this.coins){
+      for (const coin of this.coins) {
         coin.updateQuantity(quantities[coin.name]);
       }
     }
     catch (error) {
-      console.error("Error in updateQuantities()", error);
+      console.error("Error in updateQuantities()", errorMessage(error));
       await delay(2000);
       return this.updateQuantities();
     }
