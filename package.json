@@ -11,5 +11,8 @@
     "crypto": "^1.0.1",
     "dotenv": "^4.0.0",
     "query-string": "^5.0.1"
+  },
+  "scripts": {
+    "start": "node index.js"
   }
 }

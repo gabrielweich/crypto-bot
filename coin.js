@@ -1,9 +1,10 @@
 const { delay, toBuyPlace, toSellPlace, errorMessage } = require('./utils');
 
 class Coin {
-  constructor(name) {
+  constructor(name, sensibility = 1) {
     this.name = name;
     this.pair = name + 'BTC';
+    this.sensibility = sensibility >= 0 && sensibility <= 2 ? sensibility : 1;
     this.createObjects();
   }
 
@@ -54,7 +55,8 @@ class Coin {
 
   async trade(price) {
     if (!this.inProcess) {
-      const valuation = ((price * 100) / this.average) - 100;
+      const valuation = (((price * 100) / this.average) - 100)*this.sensibility;
+      
       if (valuation > this.awaitedState.sell) { //SELL
         this.inProcess = true;
         this.reference = this.state !== -1 ? this.quantity : this.reference; //First Sell
@@ -102,7 +104,7 @@ class Coin {
     this.inProcess = false;
   }
 
-  finishOrder(place, operation, jump){
+  finishOrder(place, operation, jump) {
     let i = place;
     while (i >= jump && !this.fibonacci[operation][i]['executed']) {
       this.fibonacci[operation][i]['executed'] = true;
@@ -111,11 +113,11 @@ class Coin {
 
     this.fibonacci[operation] = this.initialFibonacci[operation];
 
-    if(operation === 'sell'){
+    if (operation === 'sell') {
       this.state = -1;
       this.awaitedState.sell += jump;
     }
-    else if(operation === 'buy'){
+    else if (operation === 'buy') {
       this.state = 1;
       this.awaitedState.sell -= jump;
     }

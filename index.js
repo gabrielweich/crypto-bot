@@ -9,17 +9,18 @@ const start = () => {
 }
 
 const addCoins = () => {
-  this.coinList.add(new Coin('ETH'));
-  this.coinList.add(new Coin('LTC'));
-  this.coinList.add(new Coin('XLM'));
-  this.coinList.add(new Coin('BCC'));
-  this.coinList.add(new Coin('IOTA'));
-  this.coinList.add(new Coin('DASH'));
-  this.coinList.add(new Coin('NEO'));
-  this.coinList.add(new Coin('QTUM'));
-  this.coinList.add(new Coin('XVG'));
-  this.coinList.add(new Coin('BNB'));
-  this.coinList.add(new Coin('ZEC'));
+  this.coinList.add(new Coin('ETH', 1.8));
+  this.coinList.add(new Coin('LTC', 1.9));
+  this.coinList.add(new Coin('XLM', 1.7));
+  this.coinList.add(new Coin('BCC', 1.7));
+  this.coinList.add(new Coin('IOTA', 1.6));
+  this.coinList.add(new Coin('DASH', 1.4));
+  this.coinList.add(new Coin('NEO', 1.4));
+  this.coinList.add(new Coin('QTUM', 1.7));
+  this.coinList.add(new Coin('XVG', 1.8));
+  this.coinList.add(new Coin('BNB', 1.5));
+  this.coinList.add(new Coin('ZEC', 1.4));
+  this.coinList.add(new Coin('EOS', 1.8));
 }
 
 

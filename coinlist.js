@@ -39,7 +39,7 @@ class CoinList {
         coin.trade(prices[coin.pair])
       }
 
-      await delay(5000);
+      await delay(55000);
     }
     catch (error) {
       console.error("Error in _getPrices()", errorMessage(error));
