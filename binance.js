@@ -73,7 +73,7 @@ class Binance {
     data.recvWindow = typeof params.recvWindow != 'undefined' ? params.recvWindow : 10000;
 
     const query = queryString.stringify(data);
-    const signature = crypto.createHmac('sha256', this.secret.toString()).update(query).digest('hex');
+    const signature = crypto.createHmac('sha256', this.secret).update(query).digest('hex');
     const url = `${URL}${command}?${query}&signature=${signature}`;
 
     return new Promise((resolve, reject) => {
