@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "cryptocurrency trading bot",
   "main": "index.js",
-  "repository": "https://github.com/gabrielweich/crypto-bot.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabrielweich/crypto-bot.git"
+  },
   "author": "Gabriel Weich <gabrielweich@hotmail.com>",
   "license": "MIT",
   "dependencies": {
@@ -14,5 +17,10 @@
   },
   "scripts": {
     "start": "node index.js"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/gabrielweich/crypto-bot/issues"
+  },
+  "homepage": "https://github.com/gabrielweich/crypto-bot#readme",
+  "devDependencies": {}
 }
