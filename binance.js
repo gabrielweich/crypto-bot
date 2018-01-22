@@ -67,9 +67,10 @@ class Binance {
     });
   }
 
-  _signed(command, method, params) {
+  _signed(command, method, params = {}) {
     let data = { ...params };
     data.timestamp = Date.now();
+    data.recvWindow = typeof params.recvWindow != 'undefined' ? params.recvWindow : 10000;
 
     const query = queryString.stringify(data);
     const signature = crypto.createHmac('sha256', this.secret).update(query).digest('hex');
