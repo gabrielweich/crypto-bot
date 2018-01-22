@@ -55,8 +55,8 @@ class Coin {
 
   async trade(price) {
     if (!this.inProcess) {
-      const valuation = (((price * 100) / this.average) - 100)*this.sensibility;
-      
+      const valuation = (((price * 100) / this.average) - 100) * this.sensibility;
+
       if (valuation > this.awaitedState.sell) { //SELL
         this.inProcess = true;
         this.reference = this.state !== -1 ? this.quantity : this.reference; //First Sell
