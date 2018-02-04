@@ -1,52 +1,42 @@
-const { delay, toBuyPlace, toSellPlace, errorMessage } = require('./utils');
+const { delay, errorMessage, toPlace, alma, format } = require('./utils');
 
 class Coin {
-  constructor(name, sensibility = 1) {
+  constructor(name, sensibility = 5, priority = 7) {
     this.name = name;
     this.pair = name + 'BTC';
-    this.sensibility = sensibility >= 0 && sensibility <= 2 ? sensibility : 1;
+    this.sensibility = sensibility;//sensibility >= 0 && sensibility <= 4 ? sensibility : 2;
     this.createObjects();
+    this.calculateDisponibility(priority);
   }
 
   createObjects() {
     this.fibonacci = {
-      sell: {
-        10: { fibo: 1, executed: false },//10 - 20% | >=10 && < 20
-        20: { fibo: 2, executed: false },//20 - 30% | >=20 && < 30
-        30: { fibo: 3, executed: false },//30 - 40%
-        40: { fibo: 5, executed: false },//40 - 50%
-        50: { fibo: 8, executed: false },//50 - 60%
-        60: { fibo: 13, executed: false },//60 - 70%
-        70: { fibo: 21, executed: false },//70 - 80%
-        80: { fibo: 34, executed: false },//80 - 90%
-        90: { fibo: 55, executed: false },//>= 90
-      },
-      buy: {
-        5: { fibo: 1, executed: false },//5 - 10%
-        10: { fibo: 2, executed: false },//10 - 15%
-        15: { fibo: 3, executed: false },//15 - 20%
-        20: { fibo: 5, executed: false },//20 - 25%
-        25: { fibo: 8, executed: false },//25 - 30%
-        30: { fibo: 13, executed: false },//30 - 35%
-        35: { fibo: 21, executed: false },//35 - 40%
-        40: { fibo: 34, executed: false },//40 - 45%
-        45: { fibo: 55, executed: false },//>45
-      }
+      5: { fibo: 1, buy: false, sell: false },//5 - 10%
+      10: { fibo: 2, buy: false, sell: false },//10 - 15%
+      15: { fibo: 3, buy: false, sell: false },//15 - 20%
+      20: { fibo: 5, buy: false, sell: false },//20 - 25%
+      25: { fibo: 8, buy: false, sell: false },//25 - 30%
+      30: { fibo: 13, buy: false, sell: false },//30 - 35%
+      35: { fibo: 21, buy: false, sell: false },//35 - 40%
+      40: { fibo: 34, buy: false, sell: false },//40 - 45%
+      45: { fibo: 55, buy: false, sell: false },//>45
     }
 
-    this.awaitedState = {
-      sell: 10,
-      buy: -5
-    }
-
+    this.awaitedState = 5;
     this.state = 0; // -1: sell | 1: buy | 0: initial
+
     this.inProcess = false;
-    this.initialFibonacci = Object.assign({}, this.fibonacci);
+
     this.reference = 0;
   }
 
-  receiveBinance(binance) {
+  calculateDisponibility(priority) {
+    this.disponibility = priority >= 1 && priority <= 10 ? (10 - priority) * 10 : 30;
+  }
+
+  receiveProps(binance, config) {
     this.binance = binance;
+    this.config = config;
   }
 
   updateQuantity(quantity) {
@@ -57,17 +47,16 @@ class Coin {
     if (!this.inProcess) {
       const valuation = (((price * 100) / this.average) - 100) * this.sensibility;
 
-      if (valuation > this.awaitedState.sell) { //SELL
+      if (valuation > this.awaitedState) { //SELL
         this.inProcess = true;
         this.reference = this.state !== -1 ? this.quantity : this.reference; //First Sell
-        const place = toSellPlace(valuation);
+        const place = toPlace(valuation);
         this.analyze(price, place, 'sell');
       }
-      else if (valuation < this.awaitedState.buy) { //BUY
-        const devaluation = Math.abs(valuation);
+      else if (valuation < -this.awaitedState) { //BUY
         this.inProcess = true;
-        this.reference = this.state !== 1 ? await this.getBtc() : this.reference;
-        const place = toBuyPlace(devaluation);
+        this.reference = this.state !== 1 ? this.disponibility * (await this.getBtc()) / 100 : this.reference;
+        const place = toPlace(valuation);
         this.analyze(price, place, 'buy');
       }
     }
@@ -77,49 +66,64 @@ class Coin {
     operation = operation.toLowerCase();
     let quantity = 0;
     let value = 0;
-    let fiboSum = 0;
-    let jump = 0;
+
+    const fiboSum = this._getFiboSum(operation, place);
 
     if (operation === 'sell') {
-      jump = 10;
-      fiboSum = this._getFiboSum(jump, operation, place);
       quantity = (fiboSum * this.reference) / 142;
       value = quantity * price;
     }
 
     else if (operation === 'buy') {
-      jump = 5;
-      fiboSum = this._getFiboSum(jump, operation, place);
       value = (fiboSum * this.reference) / 142;
       quantity = value / price;
     }
 
-    console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference}`)
+    //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`)
     if (value > 0.002) {
+      quantity = format(quantity, 2);
+      price = format(price, 7);
+
       const data = await this.placeOrder(operation, this.pair, quantity, price);
       console.log(data);
-      this.finishOrder(place, operation, jump);
+      this.finishOrder(place, operation);
+    }
+    else{
+      this.inProcess = false;
+    }
+  }
+
+  async finishOrder(place, operation) {
+    let i = place;
+    while (i >= 5 && !this.fibonacci[i][operation]) {
+      this.fibonacci[i][operation] = true;
+      i -= 5;
     }
 
+    if (operation === 'sell') {
+      if (this.state != -1) {
+        this.cleanFibonacci('buy');
+      }
+      this.state = -1;
+    }
+    else if (operation === 'buy') {
+      if (this.state != 1) {
+        this.cleanFibonacci('sell');
+      }
+      this.state = 1;
+    }
+
+    console.log(this.name + ": " + JSON.stringify(this.fibonacci));
+    this.awaitedState = place + 5;
+    await this.refreshQuantity();
     this.inProcess = false;
   }
 
-  finishOrder(place, operation, jump) {
-    let i = place;
-    while (i >= jump && !this.fibonacci[operation][i]['executed']) {
-      this.fibonacci[operation][i]['executed'] = true;
-      i = i - jump;
-    }
-
-    this.fibonacci[operation] = this.initialFibonacci[operation];
-
-    if (operation === 'sell') {
-      this.state = -1;
-      this.awaitedState.sell += jump;
-    }
-    else if (operation === 'buy') {
-      this.state = 1;
-      this.awaitedState.sell -= jump;
+  cleanFibonacci(operation) {
+    let i = 5;
+    while (i <= 45 && this.fibonacci[i][operation]) {
+      this.fibonacci[i][operation] = false;
+      i += 5;
     }
   }
 
@@ -130,17 +134,31 @@ class Coin {
     }
     catch (error) {
       console.error('Error in placeOrder()', errorMessage(error));
-      await delay(2000);
+      await delay(1000);
       return this.placeOrder(operation, pair, quantity, price);
     }
   }
 
-  _getFiboSum(jump, operation, place) {
+  async refreshQuantity() {
+    try {
+      const data = await this.binance.accountInfo();
+      const balances = data.balances;
+
+      this.quantity = balances.find(obj => obj.asset == this.name).free;
+    }
+    catch (error) {
+      console.error("Error in refreshQuantity()", errorMessage(error));
+      await delay(2000);
+      return this.refreshQuantity();
+    }
+  }
+
+  _getFiboSum(operation, place) {
     let i = place;
     let totalFibo = 0;
-    while (i >= jump && !this.fibonacci[operation][i]['executed']) {
-      totalFibo += this.fibonacci[operation][i]['fibo'];
-      i = i - jump;
+    while (i >= 5 && !this.fibonacci[i][operation]) {
+      totalFibo += this.fibonacci[i]['fibo'];
+      i = i - 5;
     }
     return totalFibo;
   }
@@ -153,34 +171,36 @@ class Coin {
     }
     catch (error) {
       console.error('Error in getBtc()', errorMessage(error));
-      await delay(2000);
+      await delay(1000);
       return this.getBtc();
     }
   }
 
   async updateAverage() {
-    await this.sma('4h', 50);
+    await this.getAlma(this.config.interval, this.config.window, this.config.offset, this.config.sigma);
     await delay(300000);
     this.updateAverage();
   }
 
-  async sma(interval, periods) {
+  async getAlma(interval, window, offset, sigma) {
     try {
-      let data = await this.binance.candles(this.pair, interval, { limit: periods });
-      let sum = 0;
+      let data = await this.binance.candles(this.pair, interval, { limit: window });
+
+      let closingPrices = [];
 
       data.forEach(period => {
-        sum += parseFloat(period[4]);
+        closingPrices.push(parseFloat(period[4]));
       });
 
-      const average = sum / periods;
+      closingPrices.reverse();
+      const average = alma(closingPrices, window, offset, sigma);
       this.average = average;
       return average;
     }
     catch (error) {
-      console.error(`Error in sma: ${this.name}`, errorMessage(error))
-      await delay(60000);
-      return this.sma(interval, periods)
+      console.error(`Error in getAlma: ${this.name}`, errorMessage(error))
+      await delay(10000);
+      return this.getAlma(interval, window, offset, sigma)
     }
   }
 }
