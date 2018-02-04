@@ -3,13 +3,14 @@ const Binance = require('./binance');
 const { delay, errorMessage } = require('./utils');
 
 class CoinList {
-  constructor() {
+  constructor(config) {
+    this.config = config;
     this.coins = [];
     this.binance = new Binance(process.env.KEY, process.env.SECRET);
   }
 
   add(coin) {
-    coin.receiveBinance(this.binance);
+    coin.receiveProps(this.binance, this.config);
     this.coins.push(coin);
   }
 
@@ -18,7 +19,7 @@ class CoinList {
     await Promise.all([this.updateQuantities(), this.firstPrices()])
     console.log('All started');
     this.monitors();
-    await delay(120000);
+    await delay(100000);
     for (let coin of this.coins) {
       coin.updateAverage();
     }
@@ -39,7 +40,7 @@ class CoinList {
         coin.trade(prices[coin.pair])
       }
 
-      await delay(55000);
+      await delay(5000);
     }
     catch (error) {
       console.error("Error in _getPrices()", errorMessage(error));
@@ -74,7 +75,7 @@ class CoinList {
     let promises = [];
 
     this.coins.forEach(coin => {
-      promises.push(coin.sma('4h', 50));
+      promises.push(coin.getAlma(this.config.interval, this.config.window, this.config.offset, this.config.sigma));
     });
 
     return Promise.all(promises);
