@@ -37,6 +37,7 @@ class Coin {
   receiveProps(binance, config) {
     this.binance = binance;
     this.config = config;
+    this.sensibility = this.sensibility*this.config.generalSensibility;
   }
 
   updateQuantity(quantity) {
