@@ -83,9 +83,8 @@ class Coin {
     //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`)
     if (value > 0.002) {
       quantity = format(quantity, 2);
-      price = format(price, 7);
 
-      const data = await this.placeOrder(operation, this.pair, quantity, price);
+      const data = await this.placeOrder(operation, this.pair, quantity);
       console.log(data);
       this.finishOrder(place, operation);
     }

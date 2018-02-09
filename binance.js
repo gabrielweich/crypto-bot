@@ -40,15 +40,19 @@ class Binance {
     return this._signed('api/v3/account', 'GET')
   }
 
-  order(side, symbol, quantity, price, options = {}) {
-    options.type = typeof options.type != 'undefined' ? options.type : 'LIMIT';
-    options.timeInForce = typeof options.timeInForce != 'undefined' ? options.timeInForce : 'GTC';
+  order(side, symbol, quantity, options = {}) {
+    if(typeof options.price == 'undefined'){
+      options.type = 'MARKET';
+    }
+    else{
+      options.type = 'LIMIT'
+      options.timeInForce = typeof options.timeInForce != 'undefined' ? options.timeInForce : 'GTC';
+    }
 
     let params = {
       symbol,
       side,
       quantity,
-      price,
       ...options
     }
 
