@@ -34,10 +34,11 @@ class Coin {
     this.disponibility = priority >= 1 && priority <= 10 ? (10 - priority) * 10 : 30;
   }
 
-  receiveProps(binance, config) {
+  receiveProps(binance, config, funds) {
     this.binance = binance;
     this.config = config;
     this.sensibility = this.sensibility*this.config.generalSensibility;
+    this.funds = funds;
   }
 
   updateQuantity(quantity) {
@@ -56,7 +57,7 @@ class Coin {
       }
       else if (valuation < -this.awaitedState) { //BUY
         this.inProcess = true;
-        this.reference = this.state !== 1 ? this.disponibility * (await this.getBtc()) / 100 : this.reference;
+        this.reference = this.state !== 1 ? this.disponibility * this.funds.getBtc() / 100 : this.reference;
         const place = toPlace(valuation);
         this.analyze(price, place, 'buy');
       }
@@ -116,6 +117,7 @@ class Coin {
     console.log(this.name + ": " + JSON.stringify(this.fibonacci));
     this.awaitedState = place + 5;
     await this.refreshQuantity();
+    await this.funds.updateFunds();
     this.inProcess = false;
   }
 
@@ -161,19 +163,6 @@ class Coin {
       i = i - 5;
     }
     return totalFibo;
-  }
-
-  async getBtc() {
-    try {
-      let data = await this.binance.accountInfo();
-      let obj = data.balances.find(element => element.asset == 'BTC');
-      return obj.free;
-    }
-    catch (error) {
-      console.error('Error in getBtc()', errorMessage(error));
-      await delay(1000);
-      return this.getBtc();
-    }
   }
 
   async updateAverage() {
