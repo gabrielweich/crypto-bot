@@ -6,7 +6,7 @@ const config = {
   window: process.env.WINDOW ? parseInt(process.env.WINDOW) : 10,
   offset: process.env.OFFSET ? parseFloat(process.env.OFFSET) : 0.85,
   sigma: process.env.SIGMA ? parseInt(process.env.SIGMA) : 6,
-  generalSensibility: process.env.GENERAL_SENSIBILITY ? parseInt(process.env.GENERAL_SENSIBILITY) : 1,
+  generalSensibility: process.env.GENERAL_SENSIBILITY ? parseFloat(process.env.GENERAL_SENSIBILITY) : 1,
 }
 
 const start = () => {
