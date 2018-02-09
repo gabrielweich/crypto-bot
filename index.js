@@ -10,6 +10,12 @@ const config = {
 }
 
 const start = () => {
+  console.log("Interval: " + config.interval);
+  console.log("Window: " + config.window);
+  console.log("Offset: " + config.offset);
+  console.log("Sigma: " + config.sigma);
+  console.log("General Sensibility: " + config.generalSensibility);
+
   this.coinList = new CoinList(config);
   addCoins();
   this.coinList.startCoins();
