@@ -1,5 +1,6 @@
 const Coin = require('./coin');
 const Binance = require('./binance');
+const Funds = require('./funds');
 const { delay, errorMessage } = require('./utils');
 
 class CoinList {
@@ -7,10 +8,11 @@ class CoinList {
     this.config = config;
     this.coins = [];
     this.binance = new Binance(process.env.KEY, process.env.SECRET);
+    this.funds = new Funds(this.binance);
   }
 
   add(coin) {
-    coin.receiveProps(this.binance, this.config);
+    coin.receiveProps(this.binance, this.config, this.funds);
     this.coins.push(coin);
   }
 
@@ -63,6 +65,8 @@ class CoinList {
       for (const coin of this.coins) {
         coin.updateQuantity(quantities[coin.name]);
       }
+
+      this.funds.setBtc(quantities['BTC']);
     }
     catch (error) {
       console.error("Error in updateQuantities()", errorMessage(error));
