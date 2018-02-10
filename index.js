@@ -30,9 +30,9 @@ const addCoins = () => {
   this.coinList.add(new Coin('QTUM', 5, 4));
   this.coinList.add(new Coin('LSK', 6, 3));
   this.coinList.add(new Coin('XVG', 5, 6));
-  this.coinList.add(new Coin('ZEC', 5, 5));
-  this.coinList.add(new Coin('EOS', 5, 3));
-  this.coinList.add(new Coin('NANO', 6, 1));
+  this.coinList.add(new Coin('ZEC', 5, 4));
+  this.coinList.add(new Coin('EOS', 6, 3));
+  this.coinList.add(new Coin('NANO', 5, 2));
 }
 
 start();
