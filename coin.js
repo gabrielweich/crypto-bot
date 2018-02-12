@@ -84,10 +84,7 @@ class Coin {
       quantity = value / price;
     }
 
-    if(value > 0.000001){
-      console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
-      console.log(`${this.name} -> As. Buy: ${this.awaitedState.buy} | As. Sell: ${this.awaitedState.sell} `);
-    }
+    console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
 
     if (value > 0.002) {
       quantity = format(quantity, 2);
