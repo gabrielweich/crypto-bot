@@ -37,7 +37,7 @@ class Coin {
   receiveProps(binance, config, funds) {
     this.binance = binance;
     this.config = config;
-    this.sensibility = this.sensibility*this.config.generalSensibility;
+    this.sensibility = this.sensibility * this.config.generalSensibility;
     this.funds = funds;
   }
 
@@ -48,7 +48,6 @@ class Coin {
   async trade(price) {
     if (!this.inProcess) {
       const valuation = (((price * 100) / this.average) - 100) * this.sensibility;
-
       if (valuation > this.awaitedState) { //SELL
         this.inProcess = true;
         this.reference = this.state !== -1 ? this.quantity : this.reference; //First Sell
@@ -81,15 +80,14 @@ class Coin {
       quantity = value / price;
     }
 
-    //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`)
+    //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
     if (value > 0.002) {
       quantity = format(quantity, 2);
-
-      const data = await this.placeOrder(operation, this.pair, quantity);
-      console.log(data);
+      await this.placeOrder(operation, this.pair, quantity);
+      console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
       this.finishOrder(place, operation);
     }
-    else{
+    else {
       this.inProcess = false;
     }
   }
@@ -114,8 +112,7 @@ class Coin {
       this.state = 1;
     }
 
-    console.log(this.name + ": " + JSON.stringify(this.fibonacci));
-    this.awaitedState = place + 5;
+    this.awaitedState = parseInt(place) + 5;
     await this.refreshQuantity();
     await this.funds.updateFunds();
     this.inProcess = false;

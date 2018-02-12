@@ -23,7 +23,7 @@ class Funds {
     return parseFloat(this.btc);
   }
 
-  setBtc(btc){
+  setBtc(btc) {
     this.btc = btc;
   }
 }
