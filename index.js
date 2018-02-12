@@ -24,13 +24,13 @@ const start = () => {
 const addCoins = () => {
   this.coinList.add(new Coin('ETH', 7, 2));
   this.coinList.add(new Coin('LTC', 6, 4));
-  //this.coinList.add(new Coin('XLM', 5, 4));
-  //this.coinList.add(new Coin('IOTA', 5, 3));
+  this.coinList.add(new Coin('XLM', 5, 4));
+  this.coinList.add(new Coin('IOTA', 5, 3));
   this.coinList.add(new Coin('NEO', 6, 3));
- /// this.coinList.add(new Coin('QTUM', 5, 4));
-  //this.coinList.add(new Coin('LSK', 6, 3));
-  //this.coinList.add(new Coin('XVG', 5, 6));
-  //this.coinList.add(new Coin('ZEC', 5, 4));
+  this.coinList.add(new Coin('QTUM', 5, 4));
+  this.coinList.add(new Coin('LSK', 6, 3));
+  this.coinList.add(new Coin('XVG', 5, 6));
+  this.coinList.add(new Coin('ZEC', 5, 4));
   this.coinList.add(new Coin('EOS', 6, 3));
   this.coinList.add(new Coin('NANO', 5, 2));
 }
