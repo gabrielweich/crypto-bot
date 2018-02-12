@@ -22,7 +22,11 @@ class Coin {
       45: { fibo: 55, buy: false, sell: false },//>45
     }
 
-    this.awaitedState = 5;
+    this.awaitedState = {
+      buy: 5,
+      sell: 5
+    }
+
     this.state = 0; // -1: sell | 1: buy | 0: initial
 
     this.inProcess = false;
@@ -48,13 +52,13 @@ class Coin {
   async trade(price) {
     if (!this.inProcess) {
       const valuation = (((price * 100) / this.average) - 100) * this.sensibility;
-      if (valuation > this.awaitedState) { //SELL
+      if (valuation > this.awaitedState.sell) { //SELL
         this.inProcess = true;
         this.reference = this.state !== -1 ? this.quantity : this.reference; //First Sell
         const place = toPlace(valuation);
         this.analyze(price, place, 'sell');
       }
-      else if (valuation < -this.awaitedState) { //BUY
+      else if (valuation < -this.awaitedState.buy) { //BUY
         this.inProcess = true;
         this.reference = this.state !== 1 ? this.disponibility * this.funds.getBtc() / 100 : this.reference;
         const place = toPlace(valuation);
@@ -80,7 +84,11 @@ class Coin {
       quantity = value / price;
     }
 
-    //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
+    if(value > 0.000001){
+      console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
+      console.log(`${this.name} -> As. Buy: ${this.awaitedState.buy} | As. Sell: ${this.awaitedState.sell} `);
+    }
+
     if (value > 0.002) {
       quantity = format(quantity, 2);
       await this.placeOrder(operation, this.pair, quantity);
@@ -101,18 +109,20 @@ class Coin {
 
     if (operation === 'sell') {
       if (this.state != -1) {
+        this.awaitedState['buy'] = 5;
         this.cleanFibonacci('buy');
       }
       this.state = -1;
     }
     else if (operation === 'buy') {
       if (this.state != 1) {
+        this.awaitedState['sell'] = 5;
         this.cleanFibonacci('sell');
       }
       this.state = 1;
     }
 
-    this.awaitedState = parseInt(place) + 5;
+    this.awaitedState[operation] = parseInt(place) + 5;
     await this.refreshQuantity();
     await this.funds.updateFunds();
     this.inProcess = false;
