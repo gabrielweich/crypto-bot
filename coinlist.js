@@ -1,56 +1,42 @@
 const Coin = require('./coin');
 const Binance = require('./binance');
 const Funds = require('./funds');
-const { delay, errorMessage } = require('./utils');
+const { delay, errorMessage, alma } = require('./utils');
 
 class CoinList {
   constructor(config) {
     this.config = config;
-    this.coins = [];
+    this.coinsObj = {};
     this.binance = new Binance(process.env.KEY, process.env.SECRET);
     this.funds = new Funds(this.binance);
   }
 
   add(coin) {
     coin.receiveProps(this.binance, this.config, this.funds);
-    this.coins.push(coin);
+    this.coinsObj[coin.pair] = {};
+    this.coinsObj[coin.pair].coin = coin;
+
   }
 
   async startCoins() {
-
     await Promise.all([this.updateQuantities(), this.firstPrices()])
     console.log('All started');
     this.monitors();
-    await delay(100000);
-    for (let coin of this.coins) {
-      coin.updateAverage();
-    }
   }
 
-
   async monitors() {
-    try {
-      let data = await this.binance.prices();
-
-      let prices = [];
-      data.map(obj => {
-        let symbol = obj.symbol;
-        prices[obj.symbol] = parseFloat(obj.price);
-      });
-
-      for (let coin of this.coins) {
-        coin.trade(prices[coin.pair])
+    this.binance.candlesticks(Object.keys(this.coinsObj), this.config.interval, data => {
+      const price = data.k.c;
+      const coinPair = data.s;
+      this.coinsObj[coinPair].coin.trade(price);
+      if(data.k.x){
+        const closingPrices = [...this.coinsObj[coinPair].prices];
+        closingPrices.push(price);
+        closingPrices.shift();
+        this.coinsObj[coinPair].prices = closingPrices;
+        this.updateAverage(coinPair);
       }
-
-      await delay(5000);
-    }
-    catch (error) {
-      console.error("Error in _getPrices()", errorMessage(error));
-    }
-    finally {
-      await delay(5000)
-      this.monitors();
-    }
+    });
   }
 
   async updateQuantities() {
@@ -62,7 +48,8 @@ class CoinList {
         quantities[obj.asset] = obj.free;
       });
 
-      for (const coin of this.coins) {
+      for (const key in this.coinsObj) {
+        const coin = this.coinsObj[key].coin;
         coin.updateQuantity(quantities[coin.name]);
       }
 
@@ -78,11 +65,36 @@ class CoinList {
   async firstPrices() {
     let promises = [];
 
-    this.coins.forEach(coin => {
-      promises.push(coin.getAlma(this.config.interval, this.config.window, this.config.offset, this.config.sigma));
-    });
+    for(const key in this.coinsObj){
+      promises.push(this.getPrices(key));
+    }
 
     return Promise.all(promises);
+  }
+
+  async getPrices(coinPair) {
+    try {
+      const data = await this.binance.candles(coinPair, this.config.interval, { limit: this.config.window });
+
+      let closingPrices = [];
+
+      data.forEach(period => {
+        closingPrices.push(parseFloat(period[4]));
+      });
+
+      this.coinsObj[coinPair].prices = closingPrices;
+      this.updateAverage(coinPair);
+    }
+    catch (error) {
+      console.error('Error in getFirstPrices()', errorMessage(error));
+      return this.getPrices(coinPair);
+    }
+  }
+
+  updateAverage(coinPair) {
+    const data = [...this.coinsObj[coinPair].prices];
+    data.reverse();
+    this.coinsObj[coinPair].coin.setAverage(alma(data, this.config.window, this.config.offset, this.config.sigma));
   }
 }
 
