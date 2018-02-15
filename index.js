@@ -33,6 +33,7 @@ const addCoins = () => {
   this.coinList.add(new Coin('ZEC', 5, 3));
   this.coinList.add(new Coin('EOS', 6, 4));
   this.coinList.add(new Coin('NANO', 5, 8));
+  this.coinList.add(new Coin('XMR', 5, 4));
 }
 
 start();
