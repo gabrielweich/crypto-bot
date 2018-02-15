@@ -45,6 +45,11 @@ class Coin {
     this.funds = funds;
   }
 
+  setAverage(average){
+    this.average = parseFloat(average);
+    console.log(this.name + ": Average updated! - " + average);
+  }
+
   updateQuantity(quantity) {
     this.quantity = parseFloat(quantity);
   }
@@ -52,6 +57,7 @@ class Coin {
   async trade(price) {
     if (!this.inProcess) {
       const valuation = (((price * 100) / this.average) - 100) * this.sensibility;
+      //console.log(`${this.name}: Val:${valuation} | Prc:${price} | Avg:${this.average} | As:${this.awaitedState.sell} | Ab:${this.awaitedState.buy}`);
       if (valuation > this.awaitedState.sell) { //SELL
         this.inProcess = true;
         this.reference = this.state !== -1 ? this.quantity : this.reference; //First Sell
@@ -70,6 +76,7 @@ class Coin {
   async analyze(price, place, operation) {
     operation = operation.toLowerCase();
     let quantity = 0;
+
     let value = 0;
 
     const fiboSum = this._getFiboSum(operation, place);
@@ -85,6 +92,7 @@ class Coin {
     }
 
     //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
+
 
     if (value > 0.002) {
       quantity = format(quantity, 2);
@@ -167,34 +175,6 @@ class Coin {
       i = i - 5;
     }
     return totalFibo;
-  }
-
-  async updateAverage() {
-    await this.getAlma(this.config.interval, this.config.window, this.config.offset, this.config.sigma);
-    await delay(300000);
-    this.updateAverage();
-  }
-
-  async getAlma(interval, window, offset, sigma) {
-    try {
-      let data = await this.binance.candles(this.pair, interval, { limit: window });
-
-      let closingPrices = [];
-
-      data.forEach(period => {
-        closingPrices.push(parseFloat(period[4]));
-      });
-
-      closingPrices.reverse();
-      const average = alma(closingPrices, window, offset, sigma);
-      this.average = average;
-      return average;
-    }
-    catch (error) {
-      console.error(`Error in getAlma: ${this.name}`, errorMessage(error))
-      await delay(10000);
-      return this.getAlma(interval, window, offset, sigma)
-    }
   }
 }
 

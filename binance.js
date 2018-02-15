@@ -1,6 +1,9 @@
 const axios = require('axios');
 const queryString = require('query-string');
 const crypto = require("crypto");
+const WebSocket = require('ws');
+
+const stream = 'wss://stream.binance.com:9443/ws/';
 
 const URL = 'https://api.binance.com/';
 const contentType = 'application/x-www-form-urlencoded';
@@ -41,10 +44,10 @@ class Binance {
   }
 
   order(side, symbol, quantity, options = {}) {
-    if(typeof options.price == 'undefined'){
+    if (typeof options.price == 'undefined') {
       options.type = 'MARKET';
     }
-    else{
+    else {
       options.type = 'LIMIT'
       options.timeInForce = typeof options.timeInForce != 'undefined' ? options.timeInForce : 'GTC';
     }
@@ -59,9 +62,38 @@ class Binance {
     return this._signed('api/v3/order', 'POST', params)
   }
 
+  candlesticks(symbols, interval, callback) {
+    let endpoint = '';
+
+    if (Array.isArray(symbols)) {
+      symbols.map(symbol => {
+        endpoint += symbol.toLowerCase() + '@kline_' + interval + '/';
+      });
+    }
+    else {
+      endpoint = symbols.toLowerCase() + '@kline_' + interval;
+    }
+
+    const ws = new WebSocket(stream + endpoint);
+    ws.reconnect = true;
+    ws.on('message', data => {
+      try {
+        callback(JSON.parse(data));
+      } catch (error) {
+        console.log('Parse error: ' + error.message);
+      }
+    });
+    ws.on('error', error => {
+      console.log(error);
+    });
+    ws.on('close', () => {
+      console.log('socket closed');
+    })
+  }
 
   _public(command, params) {
-    let url = `${URL}${command}?${queryString.stringify(params)}`;
+    const url = `${URL}${command}?${queryString.stringify(params)}`;
+
     return new Promise((resolve, reject) => {
       axios.get(
         url

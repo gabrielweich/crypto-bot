@@ -13,7 +13,8 @@
     "axios": "^0.17.1",
     "crypto": "^1.0.1",
     "dotenv": "^4.0.0",
-    "query-string": "^5.0.1"
+    "query-string": "^5.0.1",
+    "ws": "^4.0.0"
   },
   "scripts": {
     "start": "node index.js"
