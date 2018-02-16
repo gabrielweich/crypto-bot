@@ -45,9 +45,8 @@ class Coin {
     this.funds = funds;
   }
 
-  setAverage(average){
+  setAverage(average) {
     this.average = parseFloat(average);
-    console.log(this.name + ": Average updated! - " + average);
   }
 
   updateQuantity(quantity) {
@@ -74,44 +73,37 @@ class Coin {
   }
 
   async analyze(price, place, operation) {
-    operation = operation.toLowerCase();
-    let quantity = 0;
+      operation = operation.toLowerCase();
+      let quantity = 0;
 
-    let value = 0;
+      let value = 0;
 
-    const fiboSum = this._getFiboSum(operation, place);
+      const fiboSum = this._getFiboSum(operation, place);
 
-    if (operation === 'sell') {
-      quantity = (fiboSum * this.reference) / 142;
-      value = quantity * price;
-    }
+      if (operation === 'sell') {
+        quantity = (fiboSum * this.reference) / 142;
+        value = quantity * price;
+      }
 
-    else if (operation === 'buy') {
-      value = (fiboSum * this.reference) / 142;
-      quantity = value / price;
-    }
+      else if (operation === 'buy') {
+        value = (fiboSum * this.reference) / 142;
+        quantity = value / price;
+      }
 
-    //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
+      //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
 
+      if (value > 0.002) {
+        quantity = format(quantity, 2);
+        await this.placeOrder(operation, this.pair, quantity);
+        console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
+        await this.finishOrder(place, operation);
+      }
 
-    if (value > 0.002) {
-      quantity = format(quantity, 2);
-      await this.placeOrder(operation, this.pair, quantity);
-      console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
-      this.finishOrder(place, operation);
-    }
-    else {
+      this.shiftState(operation, place);
       this.inProcess = false;
-    }
   }
 
-  async finishOrder(place, operation) {
-    let i = place;
-    while (i >= 5 && !this.fibonacci[i][operation]) {
-      this.fibonacci[i][operation] = true;
-      i -= 5;
-    }
-
+  shiftState(operation, place) {
     if (operation === 'sell') {
       if (this.state != -1) {
         this.awaitedState['buy'] = 5;
@@ -128,9 +120,17 @@ class Coin {
     }
 
     this.awaitedState[operation] = parseInt(place) + 5;
+  }
+
+  async finishOrder(place, operation) {
+    let i = place;
+    while (i >= 5 && !this.fibonacci[i][operation]) {
+      this.fibonacci[i][operation] = true;
+      i -= 5;
+    }
+
     await this.refreshQuantity();
     await this.funds.updateFunds();
-    this.inProcess = false;
   }
 
   cleanFibonacci(operation) {
