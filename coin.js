@@ -95,7 +95,7 @@ class Coin {
 
       if (value > 0.001) {
         quantity = format(quantity, this.fractionLimit);
-        await this.placeOrder(operation, this.pair, quantity, {test: true});
+        await this.placeOrder(operation, this.pair, quantity);
         console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
         await this.finishOrder(place, operation);
       }
