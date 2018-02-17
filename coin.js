@@ -74,34 +74,40 @@ class Coin {
   }
 
   async analyze(price, place, operation) {
-      operation = operation.toLowerCase();
-      let quantity = 0;
+    operation = operation.toLowerCase();
+    let quantity = 0;
 
-      let value = 0;
+    let value = 0;
 
-      const fiboSum = this._getFiboSum(operation, place);
+    const fiboSum = this._getFiboSum(operation, place);
 
-      if (operation === 'sell') {
-        quantity = (fiboSum * this.reference) / 142;
-        value = quantity * price;
-      }
+    if (operation === 'sell') {
+      quantity = (fiboSum * this.reference) / 142;
+      value = quantity * price;
+    }
 
-      else if (operation === 'buy') {
-        value = (fiboSum * this.reference) / 142;
+    else if (operation === 'buy') {
+      value = (fiboSum * this.reference) / 142;
+      quantity = value / price;
+
+      const availableBtc = this.funds.getBtc();
+      if (value > availableBtc) {
+        value = availableBtc;
         quantity = value / price;
       }
+    }
 
-      //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
+    //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
 
-      if (value > 0.001) {
-        quantity = format(quantity, this.fractionLimit);
-        await this.placeOrder(operation, this.pair, quantity);
-        console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
-        await this.finishOrder(place, operation);
-      }
+    if (value > 0.001) {
+      quantity = format(quantity, this.fractionLimit);
+      await this.placeOrder(operation, this.pair, quantity);
+      console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
+      await this.finishOrder(place, operation);
+    }
 
-      this.shiftState(operation, place);
-      this.inProcess = false;
+    this.shiftState(operation, place);
+    this.inProcess = false;
   }
 
   shiftState(operation, place) {
@@ -149,7 +155,7 @@ class Coin {
     }
     catch (error) {
       console.error('Error in placeOrder()', errorMessage(error));
-      await delay(1000);
+      await delay(2000);
       return this.placeOrder(operation, pair, quantity, options);
     }
   }
