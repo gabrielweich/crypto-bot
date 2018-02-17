@@ -44,6 +44,12 @@ class Binance {
   }
 
   order(side, symbol, quantity, options = {}) {
+    let url = 'api/v3/order';
+    if(options.test) {
+      url += '/test';
+      delete options.test;
+    }
+
     if (typeof options.price == 'undefined') {
       options.type = 'MARKET';
     }
@@ -59,7 +65,7 @@ class Binance {
       ...options
     }
 
-    return this._signed('api/v3/order', 'POST', params)
+    return this._signed(url, 'POST', params)
   }
 
   candlesticks(symbols, interval, callback) {

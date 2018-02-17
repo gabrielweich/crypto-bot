@@ -1,10 +1,11 @@
 const { delay, errorMessage, toPlace, alma, format } = require('./utils');
 
 class Coin {
-  constructor(name, sensibility = 5, priority = 7) {
+  constructor(name, sensibility = 5, priority = 7, fractionLimit = 0) {
     this.name = name;
     this.pair = name + 'BTC';
     this.sensibility = sensibility;//sensibility >= 0 && sensibility <= 4 ? sensibility : 2;
+    this.fractionLimit = fractionLimit;
     this.createObjects();
     this.calculateDisponibility(priority);
   }
@@ -92,9 +93,9 @@ class Coin {
 
       //console.log(`${this.name} -> Prc: ${price} | Plc: ${place} | Op: ${operation} | FibSum: ${fiboSum} | Qtt: ${quantity} | Val: ${value} | Ref: ${this.reference} | Av ${this.average}`);
 
-      if (value > 0.002) {
-        quantity = format(quantity, 2);
-        await this.placeOrder(operation, this.pair, quantity);
+      if (value > 0.001) {
+        quantity = format(quantity, this.fractionLimit);
+        await this.placeOrder(operation, this.pair, quantity, {test: true});
         console.log(`${operation} -> ${this.name}: Prc: ${price} | Qtd: ${quantity} | Val: ${value} | Plc: ${place}`);
         await this.finishOrder(place, operation);
       }
@@ -141,15 +142,15 @@ class Coin {
     }
   }
 
-  async placeOrder(operation, pair, quantity, price) {
+  async placeOrder(operation, pair, quantity, options = {}) {
     try {
-      const data = await this.binance.order(operation, pair, quantity, price);
+      const data = await this.binance.order(operation, pair, quantity, options);
       return data;
     }
     catch (error) {
       console.error('Error in placeOrder()', errorMessage(error));
       await delay(1000);
-      return this.placeOrder(operation, pair, quantity, price);
+      return this.placeOrder(operation, pair, quantity, options);
     }
   }
 
